@@ -22,11 +22,15 @@ function preload() {
     this.load.image('ship', 'assets/spaceShips_001.png');
     this.load.image('otherPlayer', 'assets/enemyBlack5.png');
     this.load.image('star', 'assets/star_gold.png');
+    this.load.image('start', 'assets/start.jpg');
 }
+
+var socket = null;
 
 function create() {
     var self = this;
     this.socket = io();
+    socket = this.socket;
     this.otherPlayers = this.physics.add.group();
     this.socket.on('currentPlayers', function (players) {
         Object.keys(players).forEach(function (id) {
@@ -58,6 +62,8 @@ function create() {
     });
     this.blueScoreText = this.add.text(16, 16, '', {fontSize: '32px', fill: '#0000FF'});
     this.redScoreText = this.add.text(584, 16, '', {fontSize: '32px', fill: '#FF0000'});
+    this.timeLeftText = this.add.text(290, 16, '', {fontSize: '32px', fill: '#00FF00'});
+
 
     this.socket.on('scoreUpdate', function (scores) {
         self.blueScoreText.setText('Blue: ' + scores.blue);
@@ -70,7 +76,18 @@ function create() {
             this.socket.emit('starCollected');
         }, null, self);
     });
+    this.socket.on('timeUpdate', function (time) {
+        self.timeLeftText.setText('Time Left: ' + time);
+    });
+
+    this.socket.on('gameOver', function (scores) {
+        console.log(scores);
+    });
     this.cursors = this.input.keyboard.createCursorKeys();
+
+    this.startButton = this.add.sprite(35, 580, 'start').setDisplaySize(50, 20);
+    this.startButton.setInteractive();
+    this.startButton.on('pointerdown', startGame);
 }
 
 function update() {
@@ -127,3 +144,10 @@ function addOtherPlayers(self, playerInfo) {
     otherPlayer.playerId = playerInfo.playerId;
     self.otherPlayers.add(otherPlayer);
 }
+
+function startGame() {
+    console.log('click');
+    socket.emit('startNewGame');
+}
+
+

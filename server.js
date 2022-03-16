@@ -15,6 +15,14 @@ var scores = {
     blue: 0,
     red: 0
 };
+
+var currentGame = {
+    startTime: 0,
+    finished: false
+}
+
+var interval = null;
+
 app.use(express.static(__dirname + '/public'));
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
@@ -63,6 +71,27 @@ io.on('connection', function (socket) {
         star.y = Math.floor(Math.random() * 500) + 50;
         io.emit('starLocation', star);
         io.emit('scoreUpdate', scores);
+    });
+    socket.on('startNewGame', function () {
+        currentGame.startTime = Date.now();
+        currentGame.finished = false;
+        scores.blue = 0;
+        scores.red = 0;
+        star.x = Math.floor(Math.random() * 700) + 50;
+        star.y = Math.floor(Math.random() * 500) + 50;
+        io.emit('starLocation', star);
+        io.emit('scoreUpdate', scores);
+        interval = setInterval(function () {
+            let time = Math.floor((Date.now() - currentGame.startTime) / 1000);
+            timeLeft = 200 - time;
+            if (timeLeft < 0) {
+                io.emit('timeUpdate', 0);
+                io.emit('gameOver', scores);
+                clearInterval(interval);
+            } else {
+                io.emit('timeUpdate', timeLeft);
+            }
+        }, 1000);
     });
 });
 server.listen(8081, function () {
