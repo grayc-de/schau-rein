@@ -31,7 +31,8 @@ io.on('connection', function (socket) {
         // remove this player from our players object
         delete players[socket.id];
         // emit a message to all players to remove this player
-        io.emit('disconnect', socket.id);
+        socket.disconnect();
+//        io.emit('disconnect', socket.id);
     });
 });
 server.listen(8081, function () {
